@@ -5,7 +5,6 @@ ARG OSM_USER=renderaccount
 RUN cd /
 
 RUN apt-get update
-RUN apt-get dist-upgrade
 
 # Set the locale
 RUN apt-get -y install locales
