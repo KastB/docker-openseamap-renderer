@@ -34,20 +34,18 @@ for file in $(ls tmp | grep "\.osm"); do
   ty=$(echo $file | cut -f 2 -d'-')
   z=$(echo $file | cut -f 3 -d'-')
   z=$(echo $z | cut -f 1 -d'.')
-  #if [ $z = 12 ]; then
-#	for k in {12..18}; do
-#	  ../searender/searender ../searender/symbols/symbols.defs $k >tmp/$tx-$ty-$k.svg <tmp/$file 2> /dev/zero
-#	  java -jar ../jtile/jtile.jar tmp/ tiles/ $k $tx $ty
-#	  echo "$(date) rendering $k $tx $ty"
-#	done;
- # else
+  if [ $z = 12 ]; then
+	for k in {12..18}; do
+	  ../searender/searender ../searender/symbols/symbols.defs $k >tmp/$tx-$ty-$k.svg <tmp/$file 2> /dev/zero
+	done;
+	fi
 	../searender/searender ../searender/symbols/symbols.defs $z >tmp/$tx-$ty-$z.svg <tmp/$file 2> /dev/zero
 	java -jar ../jtile/jtile.jar tmp/ tiles/ $z $tx $ty
 	echo "$(date) rendering $z $tx $ty"
-#  fi
   rm tmp/$file  
 done
 echo "tilegen - done"
+
 
 #tiler
 echo "tiler"
