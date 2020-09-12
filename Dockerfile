@@ -56,7 +56,8 @@ RUN cd ~/src && \
     cd ../jtile && \
     ant && \
     cd ../searender && \
-    make Makefile.linux
+    mv Makefile.linux Makefile && \
+    make all
  
 ADD ./scripts/init.sh /bin/init.sh
 USER root
