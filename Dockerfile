@@ -59,7 +59,8 @@ RUN cd ~/src && \
     mv Makefile.linux Makefile && \
     make all
  
-ADD ./scripts/init.sh /bin/init.sh
+COPY scripts/init.sh /bin/init.sh
+
 USER root
 RUN chmod a+x /bin/init.sh
 CMD /bin/init.sh
