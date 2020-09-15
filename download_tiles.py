@@ -18,7 +18,14 @@ lonEnde = 9.8
 name = "OpenSeaMapOfflineLakeConstance"
 base_dir = "/data/osm/osm_tiles" # "/".join(__file__.split("/")[:-1])
 """
-file_name, level_start, level_end, latStart, lonStart, latEnd, lonEnd, map_name, base_dir = sys.argv
+level_start = int(sys.argv[1])
+level_end = int(sys.argv[2])
+latStart = float(sys.argv[3])
+lonStart = float(sys.argv[4])
+latEnd  = float(sys.argv[5])
+lonEnd = float(sys.argv[6])
+map_name = sys.argv[7]
+base_dir = sys.argv[8]
 
 
 def deg2num(lat_deg, lon_deg, zoom):
