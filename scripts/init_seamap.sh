@@ -3,17 +3,12 @@ DATA="/data/data.osm.bz2"
 DB_DIR="/home/renderaccount/overpass_db/"
 EXEC_DIR="/home/renderaccount/opt/overpass/"
 # Node 5569415244 used in way 582303753 not found. => these messages are normal if you dont import the whole planet
-# /home/renderaccount/opt/overpass/bin/init_osm3s.sh $DATA $DB_DIR $EXEC_DIR --meta
+/home/renderaccount/opt/overpass/bin/init_osm3s.sh $DATA $DB_DIR $EXEC_DIR --meta
 echo "bk: init done"
+mkdir -p $DB_DIR
 chmod 777 -R $DB_DIR 
 /home/renderaccount/opt/overpass/bin/dispatcher --osm-base --meta &
 sleep 1
-cd  $DB_DIR 
-#wget http://dev.overpass-api.de/releases/osm-3s_v0.7.56.7.tar.gz
-#tar -zxvf osm-3s_v*.tar.gz
-#cd osm-3s_v*
-#./configure CXXFLAGS="-O2" --prefix=$EXEC_DIR
-#make install
 
 cd /home/renderaccount/src/renderer/work/
 
@@ -56,4 +51,5 @@ for file in $(ls cache); do
 done
 
 echo "tiler done"
-cp -r /home/renderaccount/src/renderer/work/tiles /data
+mkdir -p /data/seamap_tiles
+cp -r /home/renderaccount/src/renderer/work/tiles/* /data/seamap_tiles

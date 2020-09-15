@@ -22,13 +22,14 @@ RUN apt-get -y install ant \
 					make \
 					expat \
 					libexpat1-dev \
-					zlib1g-dev\
-					git\
-					autoconf\
-					libtool\
-					automake1.11\
-					openjdk-8-jdk\
-					bzip2
+					zlib1g-dev \
+					git \
+					autoconf \
+					libtool \
+					automake1.11 \
+					openjdk-8-jdk \
+					bzip2 \
+					wget
 RUN useradd -m $OSM_USER
 USER $OSM_USER
 RUN mkdir ~/src && \
@@ -58,9 +59,17 @@ RUN cd ~/src && \
     cd ../searender && \
     mv Makefile.linux Makefile && \
     make all
- 
-COPY scripts/init.sh /bin/init.sh
 
 USER root
+RUN mkdir -p /home/renderaccount/overpass_db/ && cd /home/renderaccount/overpass_db/ && \
+	wget http://dev.overpass-api.de/releases/osm-3s_v0.7.56.7.tar.gz && \
+	tar -zxvf osm-3s_v*.tar.gz && \
+	cd osm-3s_v* && \
+	./configure CXXFLAGS="-O2" --prefix=$EXEC_DIR && \
+	make install
+
+ 
+COPY scripts/init_seamap.sh /bin/init.sh
+
 RUN chmod a+x /bin/init.sh
 CMD /bin/init.sh
