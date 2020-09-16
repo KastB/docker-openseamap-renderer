@@ -18,6 +18,7 @@ lonEnde = 9.8
 name = "OpenSeaMapOfflineLakeConstance"
 base_dir = "/data/osm/osm_tiles" # "/".join(__file__.split("/")[:-1])
 """
+print(sys.argv)
 level_start = int(sys.argv[1])
 level_end = int(sys.argv[2])
 latStart = float(sys.argv[3])

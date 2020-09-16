@@ -49,7 +49,7 @@ docker run -p 8008:80 -v /data/:/data -e DATA="${data_dir}/data.osm.bz2" osm_ren
 
 # either directory (possibly with squashfs compression)
 sleep 300
-python3 download_tiles.py level_start level_end latStart lonStart latEnde lonEnde "${name_osm}" "${data_dir}/osm_tiles"
+python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
 mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lz4
 echo "shutdown of docker containers necessary"
 exit(0)
