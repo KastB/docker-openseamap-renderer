@@ -48,8 +48,11 @@ def num2deg(xtile, ytile, zoom):
 def retrieve(dat):
     import urllib.request
     (urlOSM, x, y, z) = dat
+    out_file = '{}/{}/{}/{}.png'.format(base_dir, z, x, y)
+    if os.path.isfile(out_file):
+        return False
     try:
-        urllib.request.urlretrieve(urlOSM.format(z, x, y), '{}/tiles/{}/{}/{}.png'.format(base_dir, z, x, y))
+        urllib.request.urlretrieve(urlOSM.format(z, x, y), out_file)
     except:
         return False
     return True
@@ -61,7 +64,7 @@ try:
 except OSError:
     pass
 
-with open("{}/manifest.json".format(base_dir), "w") as fp:
+with open("{}/metadata.json".format(base_dir), "w") as fp:
     lines = """{{
         "bounds": [
         {},
@@ -85,6 +88,10 @@ for z in range(level_start, level_end + 1):
         pass
     xstart, ystart = deg2num(latStart, lonStart, z)
     xende, yende = deg2num(latEnd, lonEnd, z)
+    if xstart > 0:
+        xstart -= 1
+    if ystart > 0:
+        ystart -= 1
     yende = yende + 1
     xende = xende + 1
 
@@ -102,6 +109,10 @@ for z in range(level_start, level_end + 1):
         for y in range(ystart, yende):
             data.append((urlOSM, x, y, z))
 
-p = Pool(processes=64)
-p.map(retrieve, data)
+p = Pool(processes=8)
+while True:
+	print("new_loop")
+	ret = p.map(retrieve, data)
+	if True not in ret:
+		break
 p.close()

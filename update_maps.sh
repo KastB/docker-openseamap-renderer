@@ -29,20 +29,20 @@ mkdir -p ${data_dir}/seamap_tiles/
 docker run -v ${data_dir}:/data seamap_renderer
 echo """
 {
-        "bounds": [
+        \"bounds\": [
         ${lonStart},
         ${latEnde},
         ${lonEnde},
         ${latStart}
         ],
-        "minzoom": ${level_start},
-        "maxzoom": ${level_end},
-        "name": "${name_seamap}",
-        "description": "${name_seamap}",
-        "format": "png"
+        \"minzoom\": ${level_start},
+        \"maxzoom\": ${level_end},
+        \"name\": \"${name_seamap}\",
+        \"description\": \"${name_seamap}\",
+        \"format\": \"png\"
     }
 
-""" > ${data_dir}/seamap_tiles/manifest.json
+""" > ${data_dir}/seamap_tiles/metadata.json
 
 
 docker run -p 8008:80 -v /data/:/data -e DATA="${data_dir}/data.osm.bz2" osm_renderer &
@@ -50,9 +50,11 @@ docker run -p 8008:80 -v /data/:/data -e DATA="${data_dir}/data.osm.bz2" osm_ren
 # either directory (possibly with squashfs compression)
 sleep 300
 python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
-mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lz4
+cd ${data_dir}	
+#mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lz4
+mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lzo
 echo "shutdown of docker containers necessary"
-exit(0)
+exit 0
 
 # or mbtiles
 # Openseamap mbtiles
