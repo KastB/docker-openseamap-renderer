@@ -45,7 +45,7 @@ RUN cd ~/src/Overpass-API/src; \
 	autoreconf && \
 	cd ../build && \
 	../src/configure CXXFLAGS="-Wall -O2" --prefix=/home/$OSM_USER/opt/overpass && \
-	make install -j
+	make install -j4
 
 RUN cd ~/src && \
     git clone https://github.com/KastB/renderer.git && \
