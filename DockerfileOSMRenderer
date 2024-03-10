@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:22.04
 
 # Set user
 ARG OSM_USER=renderaccount
@@ -15,16 +15,16 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get -y install libboost-all-dev git-core tar unzip wget bzip2 \
     build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev \
-    libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev \
-    protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev \
+    libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-dev \
+    protobuf-c-compiler libfreetype6-dev libpng-dev libtiff5-dev \
     libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 \
-    apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev \ 
-    libgeotiff-epsg
+    apache2-dev libagg-dev liblua5.2-dev fonts-noto lua5.1 liblua5.1-dev \ 
+    libgeotiff-dev
 
 # Postgres / Postgis
 
-RUN apt-get -y install postgresql postgresql-contrib postgis \ 
-    postgresql-9.5-postgis-2.2
+RUN DEBIAN_FRONTEND=noninteractive TZ=Europe/Berlin apt-get -y install postgresql postgresql-contrib postgis \ 
+    postgresql-14-postgis-3
 
 USER postgres
 RUN  /etc/init.d/postgresql start && \

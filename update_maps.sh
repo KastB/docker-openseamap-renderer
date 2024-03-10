@@ -1,20 +1,26 @@
 #!/bin/bash
 # https://www.openstreetmap.org/export#map=19/47.54412/9.68215&layers=N
-echo "expecting a new ${data_dir}/data.osm.bz2"
-data_dir="/data/osm"
-#!/bin/bash
+
 level_start=2
 level_end=19
 latStart=47.82
 lonStart=8.86
 latEnde=47.47
 lonEnde=9.8
+data_dir="./data"
 
-#curl -v -v -d @changeset.osm -H "X_HTTP_METHOD_OVERRIDE: PUT" "https://api.openstreetmap.org/api/0.6/map?bbox=${latEnde},${lonEnde},${latEnde},${lonStart}"
-#https://api.openstreetmap.org/api/0.6/map?bbox=47.47,8.86,47.47,9.8
-#wget -O ${data_dir}/data.osm https://overpass-api.de/api/map?bbox=${lonStart},${latEnde},${lonEnde},${latStart}
-#bzip2 -z -c ${data_dir}/data.osm > ${data_dir}/data.osm.bz2
-#rm data.osm
+file="${data_dir}/data.osm.bz2"
+# Check if the folder exists and the file exists within that folder
+if [ -d "$data_dir" ] && [ -e "$file" ]; then
+    echo "File $file exists. Continuing..."
+else
+    # If folder or file doesn't exist, execute the commands
+    echo "Folder or file does not exist. Executing commands..."
+	mkdir -p ${data_dir}
+    wget -O ${data_dir}/data.osm https://overpass-api.de/api/map?bbox=${lonStart},${latEnde},${lonEnde},${latStart}
+    bzip2 -z -c ${data_dir}/data.osm > ${data_dir}/data.osm.bz2
+    rm "${data_dir}/data.osm"
+fi
 
 name_osm="OpenSeaMapOfflineLakeConstance"
 name_seamap="OpenSeaMapOfflineLakeConstance"
