@@ -61,14 +61,15 @@ RUN cd /home/$OSM_USER/src/osm2pgsql/build && make install
 
 USER root
 RUN apt-get -y install autoconf apache2-dev libtool libxml2-dev libbz2-dev \ 
-    libgeos-dev libgeos++-dev libproj-dev gdal-bin libgdal1-dev libmapnik-dev \
-    mapnik-utils python-mapnik
+    libgeos-dev libgeos++-dev libproj-dev gdal-bin gdal-bin python3-gdal libmapnik-dev \
+    mapnik-utils python3-mapnik libiniparser-dev
 
 # mod_tile and renderd
 
 USER $OSM_USER
 RUN cd ~/src && \
-    git clone -b switch2osm https://github.com/SomeoneElseOSM/mod_tile.git && \
+    # git clone -b switch2osm https://github.com/SomeoneElseOSM/mod_tile.git && \
+    git clone https://github.com/openstreetmap/mod_tile.git&& \
     cd mod_tile && \
     ./autogen.sh && \
     ./configure && \
@@ -82,7 +83,8 @@ RUN cd /home/$OSM_USER/src/mod_tile && \
 # Stylesheet
 USER root
 RUN apt-get install -y apt-utils curl &&\
-curl -sL https://deb.nodesource.com/setup_14.x > install_node.sh && bash ./install_node.sh && \
+curl -fsSL https://deb.nodesource.com/setup_21.x | bash - &&\
+apt-get install -y nodejs &&\
 apt-get update && \
 apt-get -y install nodejs
 RUN npm install -g carto
@@ -96,7 +98,7 @@ RUN cd ~/src && \
 
 # 	
 USER root
-RUN apt-get install -y python3-pip 
+RUN apt-get install -y python3-pip libiniparser-dev
 RUN pip3 install pyyaml argparse requests psycopg2
 
 # USER $OSM_USER 
@@ -107,7 +109,7 @@ RUN pip3 install pyyaml argparse requests psycopg2
 
 USER root
 RUN apt-get -y install fonts-noto-cjk fonts-noto-hinted \
-    fonts-noto-unhinted ttf-unifont
+    fonts-noto-unhinted  fonts-unifont
 
 # Apache config
 USER root 
