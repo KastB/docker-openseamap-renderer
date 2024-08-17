@@ -31,6 +31,8 @@ else
 	mkdir -p ${data_dir}
     wget -O ${data_dir}/data.osm https://overpass-api.de/api/map?bbox=${lonStart},${latEnde},${lonEnde},${latStart}
     bzip2 -z -c ${data_dir}/data.osm > ${data_dir}/data.osm.bz2
+    osmconvert ${data_dir}/data.osm -o=${data_dir}/data2.osm.pbf
+    osmium merge-changes -s  data.osm2.pbf -o data.osm.pbf
     rm "${data_dir}/data.osm"
 fi
 
@@ -39,8 +41,8 @@ name_seamap="OpenSeaMapOfflineLakeConstance"
 
 # cleanup / build
 # docker system prune -a -y
-docker build -t seamap_renderer -f DockerfileSeamapRenderer .
-docker build -t osm_renderer -f DockerfileOSMRenderer .
+#docker build -t seamap_renderer -f DockerfileSeamapRenderer .
+#docker build -t osm_renderer -f DockerfileOSMRenderer .
 
 
 mkdir -p ${data_dir}/seamap_tiles/
@@ -61,19 +63,56 @@ echo """
 
 """ > ${data_dir}/seamap_tiles/metadata.json
 
+echo "Import OSM Data"
+mkdir -p ${data_dir}/osm_data
+docker run \
+    -v ${data_dir}/data.osm.pbf:/data/region.osm.pbf \
+    -v  ${data_dir}/osm_data:/data/database/ \
+    overv/openstreetmap-tile-server \
+    import
+echo "Starting the OSM Server"
+docker run \
+    -p 8008:80 \
+    -v ${data_dir}/osm_data:/data/database/ \
+     --name osm_renderer \
+    -d overv/openstreetmap-tile-server \
+    run
+# old command
+# docker run --entrypoint=/bin/bash --rm --name  osm_renderer -p 8008:80 -v ${data_dir}/:/data -e DATA="/data/data.osm.bz2" osm_renderer /bin/init.sh &
+
 # OpenSeamap rendering
 docker run --rm  --name seamap_renderer -v ${data_dir}:/data seamap_renderer &
-docker run --rm --name  osm_renderer -p 8008:80 -v ${data_dir}/:/data -e DATA="/data/data.osm.bz2" osm_renderer &
 
-# either directory (possibly with squashfs compression)
-echo "starting up the server takes ages. During this process, there is a download, decompressing, and several 'import complete' messages. Wait till all servers are up and make your choice: 'm' for mbtiles 's' for squashfs"
-read choice
+
+# Message to display
+message="starting up the server takes ages. During this process, there is a download, decompressing, and several 'import complete' messages. Wait till all servers are up and make your choice: 'm' for mbtiles 's' for squashfs"
+
+# Loop until a valid choice is made
+while true; do
+    echo "$message"
+    read -t 120 -p "Enter your choice: " choice
+    if [[ "$choice" == "s" || "$choice" == "m" ]]; then
+        break
+    else
+        echo "Invalid choice. Please enter 'm' for mbtiles or 's' for squashfs."
+    fi
+done
 
 if [ "$choice" = "s"   ]; then
 	echo "Start rendering"
+	# https://hub.docker.com/r/overv/openstreetmap-tile-server/
 	python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
 	cd ${data_dir}	
 	#mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lz4
+	# Loop until a valid choice is made
+	message="Is  all rendering is complete? Probably when you see two multiple messeges without any output in between - check for running java jtile.jar processes to be sure for the seamap renderer [y]"
+	while true; do
+		echo "$message"
+		read -t 120 -p "Enter your choice: " choice
+		if [[ "$choice" == "y" ]]; then
+			break
+		fi
+	done
 	mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lzo
 	echo "shutdown of docker containers necessary"
 elif [ "$choice" = "m" ]; then

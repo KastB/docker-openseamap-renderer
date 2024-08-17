@@ -58,7 +58,7 @@ def retrieve(dat):
     return True
 
 
-urlOSM = "http://localhost:8008/hot/{}/{}/{}.png"
+urlOSM = "http://localhost:8008/tile/{}/{}/{}.png"
 try:
     os.mkdir("{}".format(base_dir))
 except OSError:
