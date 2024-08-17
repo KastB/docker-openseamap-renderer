@@ -95,6 +95,7 @@ RUN cd ~/src && \
     cd openstreetmap-carto &&\
     carto -v && \
     carto project.mml > mapnik.xml
+COPY conf/renderd.conf /etc
 
 # 	
 USER root
@@ -109,7 +110,7 @@ RUN pip3 install pyyaml argparse requests psycopg2
 
 USER root
 RUN apt-get -y install fonts-noto-cjk fonts-noto-hinted \
-    fonts-noto-unhinted  fonts-unifont
+    fonts-noto-unhinted  fonts-unifont fonts-hanazono fonts-noto-color-emoji
 
 # Apache config
 USER root 

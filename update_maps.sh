@@ -63,26 +63,35 @@ echo """
 
 # OpenSeamap rendering
 docker run --rm  --name seamap_renderer -v ${data_dir}:/data seamap_renderer &
-# docker run --rm --name  osm_renderer -p 8008:80 -v ${data_dir}/:/data -e DATA="${data_dir}/data.osm.bz2" osm_renderer &
+docker run --rm --name  osm_renderer -p 8008:80 -v ${data_dir}/:/data -e DATA="/data/data.osm.bz2" osm_renderer &
 
 # either directory (possibly with squashfs compression)
-sleep 300
-echo "Start rendering"
-python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
-cd ${data_dir}	
-#mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lz4
-mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lzo
-echo "shutdown of docker containers necessary"
-exit 0
+echo "starting up the server takes ages. During this process, there is a download, decompressing, and several 'import complete' messages. Wait till all servers are up and make your choice: 'm' for mbtiles 's' for squashfs"
+read choice
 
-# or mbtiles
-# Openseamap mbtiles
-cd ${data_dir}/seamap_tiles
-python3 -m http.server 2> /dev/zero > /dev/zero &
-docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8000/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=9" -e "APP_MAXZOOM=18" -e "APP_MAXAREA=160000" mapsquare/mbtiles-generator-server /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}  --top=${latStart} --right=${lonEnde}
+if [ "$choice" = "s"   ]; then
+	echo "Start rendering"
+	python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
+	cd ${data_dir}	
+	#mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lz4
+	mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lzo
+	echo "shutdown of docker containers necessary"
+elif [ "$choice" = "m" ]; then
+	# or mbtiles
+	# Openseamap mbtiles
+	cd ${data_dir}/seamap_tiles
+	python3 -m http.server 2> /dev/zero > /dev/zero &
+	docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8000/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=9" -e "APP_MAXZOOM=18" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}  --top=${latStart} --right=${lonEnde}
 
-# Openstreetmap mbtiles
-docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8008/hot/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=2" -e "APP_MAXZOOM=19" -e "APP_MAXAREA=160000" mapsquare/mbtiles-generator-server /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}--top=${latStart} --right=${lonEnde}
+	# Openstreetmap mbtiles
+	docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8008/hot/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=2" -e "APP_MAXZOOM=19" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}--top=${latStart} --right=${lonEnde}
+else
+	echo "Invalid choice"
+fi
 
-
-
+echo "stop docker containers? [y/n]"
+read choice
+if [ "$choice" != "y"   ]; then
+	docker stop seamap_renderer
+	docker stop osm_renderer
+fi

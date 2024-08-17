@@ -20,4 +20,4 @@ su renderaccount -c "osm2pgsql -d gis \
 -S ~/src/openstreetmap-carto/openstreetmap-carto.style \
 $DATA"
 
-su - renderaccount -c "renderd -f -c /usr/local/etc/renderd.conf"
+su - renderaccount -c "renderd -f -c /etc/renderd.conf" # /usr/local/etc/renderd.conf" 
