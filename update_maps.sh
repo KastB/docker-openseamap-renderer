@@ -32,7 +32,7 @@ else
     wget -O ${data_dir}/data.osm https://overpass-api.de/api/map?bbox=${lonStart},${latEnde},${lonEnde},${latStart}
     bzip2 -z -c ${data_dir}/data.osm > ${data_dir}/data.osm.bz2
     osmconvert ${data_dir}/data.osm -o=${data_dir}/data2.osm.pbf
-    osmium merge-changes -s  data.osm2.pbf -o data.osm.pbf
+    osmium merge-changes -s   ${data_dir}/data.osm2.pbf -o  ${data_dir}/data.osm.pbf
     rm "${data_dir}/data.osm"
 fi
 
@@ -72,6 +72,7 @@ docker run \
     import
 echo "Starting the OSM Server"
 docker run \
+     -rm \
     -p 8008:80 \
     -v ${data_dir}/osm_data:/data/database/ \
      --name osm_renderer \
@@ -85,7 +86,7 @@ docker run --rm  --name seamap_renderer -v ${data_dir}:/data seamap_renderer &
 
 
 # Message to display
-message="starting up the server takes ages. During this process, there is a download, decompressing, and several 'import complete' messages. Wait till all servers are up and make your choice: 'm' for mbtiles 's' for squashfs"
+message="starting up the server takes ages. During this process, there is a download, decompressing, and several 'import complete' messages. Wait till all servers are up, check localhost:8008 for connection, and only then make your choice: 'm' for mbtiles 's' for squashfs"
 
 # Loop until a valid choice is made
 while true; do

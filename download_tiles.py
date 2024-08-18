@@ -50,11 +50,14 @@ def retrieve(dat):
     (urlOSM, x, y, z) = dat
     out_file = '{}/{}/{}/{}.png'.format(base_dir, z, x, y)
     if os.path.isfile(out_file):
+        print(f"file exists: {out_file}")
         return False
     try:
         urllib.request.urlretrieve(urlOSM.format(z, x, y), out_file)
-    except:
+    except Exception as e:
+        print(f"Download {urlOSM.format(z, x, y)} failed: {e}")
         return False
+    print(f"Download {urlOSM.format(z, x, y)} success")
     return True
 
 
@@ -109,10 +112,24 @@ for z in range(level_start, level_end + 1):
         for y in range(ystart, yende):
             data.append((urlOSM, x, y, z))
 
+
+def retrieve_with_progress(dat):
+    result = retrieve(dat)
+    retrieve_with_progress.counter += 1
+    percentage = (retrieve_with_progress.counter /
+                  retrieve_with_progress.total) * 100
+    print(
+        f"Progress: {retrieve_with_progress.counter}/{retrieve_with_progress.total} ({percentage:.2f}%)", end='\r')
+
+    return result
+
+
+retrieve_with_progress.counter = 0
+retrieve_with_progress.total = len(data)
+
 p = Pool(processes=8)
-while True:
-	print("new_loop")
-	ret = p.map(retrieve, data)
-	if True not in ret:
-		break
+ret = p.map(retrieve_with_progress, data)
 p.close()
+p.join()
+
+print("\nAll tasks completed.")
