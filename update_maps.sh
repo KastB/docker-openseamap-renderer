@@ -32,7 +32,7 @@ else
     wget -O ${data_dir}/data.osm https://overpass-api.de/api/map?bbox=${lonStart},${latEnde},${lonEnde},${latStart}
     bzip2 -z -c ${data_dir}/data.osm > ${data_dir}/data.osm.bz2
     osmconvert ${data_dir}/data.osm -o=${data_dir}/data2.osm.pbf
-    osmium merge-changes -s   ${data_dir}/data.osm2.pbf -o  ${data_dir}/data.osm.pbf
+    osmium merge-changes -s   ${data_dir}/data2.osm.pbf -o  ${data_dir}/data.osm.pbf
     rm "${data_dir}/data.osm"
 fi
 
