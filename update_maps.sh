@@ -123,7 +123,7 @@ elif [ "$choice" = "m" ]; then
 	docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8000/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=9" -e "APP_MAXZOOM=18" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}  --top=${latStart} --right=${lonEnde}
 
 	# Openstreetmap mbtiles
-	docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8008/tiles/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=2" -e "APP_MAXZOOM=19" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}--top=${latStart} --right=${lonEnde}
+	docker run -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8008/tiles/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=2" -e "APP_MAXZOOM=19" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde} --top=${latStart} --right=${lonEnde}
 else
 	echo "Invalid choice"
 fi
