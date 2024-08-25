@@ -19,7 +19,7 @@ latStart=47.82
 lonStart=8.86
 latEnde=47.47
 lonEnde=9.8
-data_dir="./data"
+data_dir=`pwd`"/data"
 
 file="${data_dir}/data.osm.bz2"
 # Check if the folder exists and the file exists within that folder
