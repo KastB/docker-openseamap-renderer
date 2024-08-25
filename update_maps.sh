@@ -72,7 +72,7 @@ docker run \
     import
 echo "Starting the OSM Server"
 docker run \
-     -rm \
+     --rm \
     -p 8008:80 \
     -v ${data_dir}/osm_data:/data/database/ \
      --name osm_renderer \
