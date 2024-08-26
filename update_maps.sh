@@ -7,8 +7,6 @@ function on_interrupt {
     # Your abort command here
 	docker stop seamap_renderer
 	docker stop osm_renderer
-	docker stop seamap_mbox
-	docker stop osm_mbox
     exit 1  # Exit the script with an error status
 }
 # Trap SIGINT (Ctrl+C) and call the function on_interrupt
@@ -18,8 +16,6 @@ trap on_interrupt  INT
 
 docker stop seamap_renderer
 docker stop osm_renderer
-docker stop seamap_mbox
-docker stop osm_mbox
 
 level_start=2
 level_end=19
@@ -82,6 +78,7 @@ else
     bzip2 -z -c ${data_dir}/data.osm > ${data_dir}/data.osm.bz2
     osmconvert ${data_dir}/data.osm -o=${data_dir}/data2.osm.pbf
     osmium merge-changes -s   ${data_dir}/data2.osm.pbf -o  ${data_dir}/data.osm.pbf
+    rm ${data_dir}/data2.osm.pbf 
     rm "${data_dir}/data.osm"
 fi
 
@@ -131,18 +128,10 @@ echo "OSM Server is up!"
 
 DOWNLOAD_TILES_PID=""
 
-if [ "$choice" = "s"   ]; then
-	echo "Start rendering Openstreetmap"
-	sleep 60
-	python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
-	DOWNLOAD_TILES_PID=$!
-fi
-
-if [ "$choice" = "m" ]; then
-	echo "Start rendering Openstreetmap mbtiles"
-	sleep 60
-	docker run  --rm -d --name osm_mbox -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8008/tile/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=2" -e "APP_MAXZOOM=19" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde} --top=${latStart} --right=${lonEnde}
-fi
+echo "Start rendering Openstreetmap"
+sleep 60
+python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
+DOWNLOAD_TILES_PID=$!
 
 while [ "$(docker ps -q -f name=seamap_renderer)" ]; do
   echo "Waiting for seamap_renderer container to finish..."
@@ -150,32 +139,23 @@ while [ "$(docker ps -q -f name=seamap_renderer)" ]; do
 done
 echo "seamap_renderer container has finished."
 
+echo "Waiting for wait OSM download $DOWNLOAD_TILES_PID to finish"
+wait "$DOWNLOAD_TILES_PID"
+
+docker stop seamap_renderer
+docker stop osm_renderer
+echo "generating tiles is completed"
+
 if [ "$choice" = "s"   ]; then
-	echo "Waiting for wait OSM download $DOWNLOAD_TILES_PID to finish"
-	wait "$DOWNLOAD_TILES_PID"
 	echo "compressing"
 	cd ${data_dir}	
 	mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lzo
 fi
 
 if [ "$choice" = "m" ]; then
-	# Openseamap mbtiles
-	echo "Start rendering OpenSeaMap mbtiles"
-	python3 -m http.server --directory ${data_dir}/seamap_tiles 2> /dev/zero > /dev/zero &
-	SERVER_PID=$!
-	docker run --name seamap_mbox -v ${data_dir}/:/opt/app/data -e "APP_MODE=command" -e "TILESERVER_TYPE=osm" -e "TILESERVER_ENDPOINT=http://172.17.0.1:8000/{z}/{x}/{y}.png" -e "APP_TIMEOUT=3000" -e "APP_MINZOOM=9" -e "APP_MAXZOOM=18" -e "APP_MAXAREA=160000" ghcr.io/kastb/docker-openseamap-renderer /opt/app/app.sh --left=${lonStart} --bottom=${latEnde}  --top=${latStart} --right=${lonEnde}
-	kill "$SERVER_PID"
-	echo " OpenSeaMap mbtiles finished"
-	while [ "$(docker ps -q -f name=seamap_renderer)" ]; do
-	  echo "Waiting for osm_mbox container to finish..."
-	  sleep 30
-	done
-	echo "osm_mbox container has finished."
+	echo "generating mbtiles"
+	python3 generate_mbtiles.py --tiles_dir ${data_dir}/osm_tiles --mbtiles_path ${data_dir}/osm.mbtiles --name ${name_osm}  --description ${name_osm} --type baselayer
+	python3 generate_mbtiles.py --tiles_dir ${data_dir}/seamap_tiles --mbtiles_path ${data_dir}/seamap.mbtiles --name ${name_seamap}  --description ${name_seamap} --type overlay
 fi
-
-docker stop seamap_renderer
-docker stop osm_renderer
-docker stop seamap_mbox
-docker stop osm_mbox
 
 echo "ALL DONE!"
