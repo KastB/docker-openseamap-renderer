@@ -24,7 +24,7 @@ lonStart=8.86
 latEnde=47.47
 lonEnde=9.8
 data_dir=`pwd`"/data"
-name_osm="OpenSeaMapOfflineLakeConstance"
+name_osm="OpenStreetMapOfflineLakeConstance"
 name_seamap="OpenSeaMapOfflineLakeConstance"
 
 
@@ -126,34 +126,32 @@ while ! nc -z 127.0.0.1 8008; do
 done
 echo "OSM Server is up!"
 
-DOWNLOAD_TILES_PID=""
-
 echo "Start rendering Openstreetmap"
 sleep 60
 python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${latEnde} ${lonEnde} "${name_osm}" "${data_dir}/osm_tiles"
-DOWNLOAD_TILES_PID=$!
 
 while [ "$(docker ps -q -f name=seamap_renderer)" ]; do
-  echo "Waiting for seamap_renderer container to finish..."
-  sleep 30
+  echo "Waiting for seamap_renderer container to finish... :"
+  echo "$(date) - $(find ${data_dir}/seamap_work/tmp/ -name '*-12.osm' | wc -l) files remaining: ${data_dir}/seamap_work/tmp/"
+  sleep 60
 done
 echo "seamap_renderer container has finished."
 
-echo "Waiting for wait OSM download $DOWNLOAD_TILES_PID to finish"
-wait "$DOWNLOAD_TILES_PID"
-
-docker stop seamap_renderer
-docker stop osm_renderer
+docker stop seamap_renderer > /dev/null 2>&1
+docker stop osm_renderer > /dev/null 2>&1
 echo "generating tiles is completed"
 
 if [ "$choice" = "s"   ]; then
 	echo "compressing"
-	cd ${data_dir}	
+	cd ${data_dir}
+  rm offline_tiles.squashfs
 	mksquashfs seamap_tiles osm_tiles offline_tiles.squashfs -comp lzo
 fi
 
 if [ "$choice" = "m" ]; then
 	echo "generating mbtiles"
+  rm ${data_dir}/osm.mbtiles
+  rm ${data_dir}/seamap.mbtiles
 	python3 generate_mbtiles.py --tiles_dir ${data_dir}/osm_tiles --mbtiles_path ${data_dir}/osm.mbtiles --name ${name_osm}  --description ${name_osm} --type baselayer
 	python3 generate_mbtiles.py --tiles_dir ${data_dir}/seamap_tiles --mbtiles_path ${data_dir}/seamap.mbtiles --name ${name_seamap}  --description ${name_seamap} --type overlay
 fi

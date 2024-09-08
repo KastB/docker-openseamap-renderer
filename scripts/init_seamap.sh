@@ -24,23 +24,43 @@ java -jar ../jsearch/jsearch.jar ./
 
 #tilegen
 echo "tilegen"
-for file in $(ls tmp | grep "\.osm"); do
+# Define a function to process each file
+process_file() {
+  file=$1
   tx=$(echo $file | cut -f 1 -d'-')
   ty=$(echo $file | cut -f 2 -d'-')
   z=$(echo $file | cut -f 3 -d'-')
   z=$(echo $z | cut -f 1 -d'.')
-  if [ $z = 12 ]; then
-	for k in {12..18}; do
-	  ../searender/searender ../searender/symbols/symbols.defs $k >tmp/$tx-$ty-$k.svg <tmp/$file 2> /dev/zero
-	done;
-	fi
-	../searender/searender ../searender/symbols/symbols.defs $z >tmp/$tx-$ty-$z.svg <tmp/$file 2> /dev/zero
-	java -jar ../jtile/jtile.jar tmp/ tiles/ $z $tx $ty
-	echo "$(date) rendering $z $tx $ty"
-  rm tmp/$file  
-done
-echo "tilegen - done"
 
+  if [ $z = 12 ]; then
+   echo "$(date) rendering $z $tx $ty"
+    for k in {12..18}; do
+      /home/renderaccount/src/renderer/searender/searender /home/renderaccount/src/renderer/searender/symbols/symbols.defs $k >tmp/$tx-$ty-$k.svg <tmp/$file 2> /dev/zero 
+    done
+  fi
+  
+  /home/renderaccount/src/renderer/searender/searender /home/renderaccount/src/renderer/searender/symbols/symbols.defs $z >tmp/$tx-$ty-$z.svg <tmp/$file 2> /dev/zero 
+  java -jar /home/renderaccount/src/renderer/jtile/jtile.jar tmp/ tiles/ $z $tx $ty 
+  
+  rm tmp/$file  
+}
+export -f process_file
+
+TARGET_DIR="/data/seamap_work"
+SRC_DIR="/home/renderaccount/src/renderer/work/*"
+
+if [ -d "$TARGET_DIR" ]; then
+  echo "$TARGET_DIR exists."
+else
+  mkdir -p "$TARGET_DIR"
+  cp -r $SRC_DIR "$TARGET_DIR"
+fi
+cd "$TARGET_DIR" || exit
+
+# Find all .osm files in the tmp directory and process them in parallel
+ls tmp | grep "\.osm" | xargs -I {} bash -c 'process_file "$@"' _ {}
+
+echo "tilegen - done"
 
 #tiler
 echo "tiler"
@@ -51,5 +71,5 @@ for file in $(ls cache); do
 done
 
 echo "tiler done"
-mkdir -p /data/seamap_tiles
-cp -r /home/renderaccount/src/renderer/work/tiles/* /data/seamap_tiles
+
+cp -r /data/seamap_work/tiles/* /data/seamap_tiles
