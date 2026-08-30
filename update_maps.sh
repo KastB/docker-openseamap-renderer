@@ -132,7 +132,11 @@ python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${
 
 while [ "$(docker ps -q -f name=seamap_renderer)" ]; do
   echo "Waiting for seamap_renderer container to finish... :"
-  echo "$(date) - $(find ${data_dir}/seamap_work/tmp/ -name '*-12.osm' | wc -l) files remaining: ${data_dir}/seamap_work/tmp/"
+  if [ -d "${data_dir}/seamap_work/tmp/" ]; then
+    echo "$(date) - $(find ${data_dir}/seamap_work/tmp/ -name '*-12.osm' | wc -l) files remaining: ${data_dir}/seamap_work/tmp/"
+  else
+    echo "$(date) - seamap_work/tmp not created yet, container is still preparing data"
+  fi
   sleep 60
 done
 echo "seamap_renderer container has finished."
