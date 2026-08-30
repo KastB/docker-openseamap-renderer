@@ -152,8 +152,8 @@ if [ "$choice" = "m" ]; then
 	echo "generating mbtiles"
   rm ${data_dir}/osm.mbtiles
   rm ${data_dir}/seamap.mbtiles
-	python3 generate_mbtiles.py --tiles_dir ${data_dir}/osm_tiles --mbtiles_path ${data_dir}/osm.mbtiles --name ${name_osm}  --description ${name_osm} --type baselayer
-	python3 generate_mbtiles.py --tiles_dir ${data_dir}/seamap_tiles --mbtiles_path ${data_dir}/seamap.mbtiles --name ${name_seamap}  --description ${name_seamap} --type overlay
+	python3 generate_mbtiles.py --tiles_dir ${data_dir}/osm_tiles --mbtiles_path ${data_dir}/osm.mbtiles --name ${name_osm}  --description ${name_osm} --type baselayer --format png
+	python3 generate_mbtiles.py --tiles_dir ${data_dir}/seamap_tiles --mbtiles_path ${data_dir}/seamap.mbtiles --name ${name_seamap}  --description ${name_seamap} --type overlay --format png
 fi
 
 echo "ALL DONE!"

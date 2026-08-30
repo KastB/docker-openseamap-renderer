@@ -46,13 +46,13 @@ def process_tiles(cursor, tiles_dir):
                         if ext == '.png':
                             insert_tile(cursor, int(z), int(x), int(y_tile_name), y_tile)
 
-def main(tiles_dir, mbtiles_path, name, description, typ):
+def main(tiles_dir, mbtiles_path, name, description, format,typ):
     # Step 1: Create the MBTiles file
     conn, cursor = create_mbtiles_file(mbtiles_path)
     
     try:
         # Step 2: Insert metadata
-        insert_metadata(cursor, name, description, typ)
+        insert_metadata(cursor, name, description, format, typ)
         
         # Step 3: Insert tiles
         process_tiles(cursor, tiles_dir)
@@ -69,8 +69,9 @@ if __name__ == '__main__':
     parser.add_argument('--mbtiles_path', required=True, help='Path where the output MBTiles file will be created.')
     parser.add_argument('--name', required=True, help='Name of the map for the metadata.')
     parser.add_argument('--description', required=True, help='Description of the map for the metadata.')
-    parser.add_argument('--type', required=True, help='Type of the layer (baselayer or overlay.')
+    parser.add_argument('--type', required=True, help='Type of the layer (baselayer or overlay).')
+    parser.add_argument('--format', required=True, help='Format of the tiles (e.g., png).')
 
     args = parser.parse_args()
 
-    main(args.tiles_dir, args.mbtiles_path, args.name, args.description, args.type)
+    main(args.tiles_dir, args.mbtiles_path, args.name, args.description, args.format, args.type)
