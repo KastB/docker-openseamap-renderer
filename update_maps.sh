@@ -132,7 +132,11 @@ python3 download_tiles.py ${level_start} ${level_end} ${latStart} ${lonStart} ${
 
 while [ "$(docker ps -q -f name=seamap_renderer)" ]; do
   echo "Waiting for seamap_renderer container to finish... :"
-  echo "$(date) - $(find ${data_dir}/seamap_work/tmp/ -name '*-12.osm' | wc -l) files remaining: ${data_dir}/seamap_work/tmp/"
+  if [ -d "${data_dir}/seamap_work/tmp/" ]; then
+    echo "$(date) - $(find ${data_dir}/seamap_work/tmp/ -name '*-12.osm' | wc -l) files remaining: ${data_dir}/seamap_work/tmp/"
+  else
+    echo "$(date) - seamap_work/tmp not created yet, container is still preparing data"
+  fi
   sleep 60
 done
 echo "seamap_renderer container has finished."
@@ -152,8 +156,8 @@ if [ "$choice" = "m" ]; then
 	echo "generating mbtiles"
   rm ${data_dir}/osm.mbtiles
   rm ${data_dir}/seamap.mbtiles
-	python3 generate_mbtiles.py --tiles_dir ${data_dir}/osm_tiles --mbtiles_path ${data_dir}/osm.mbtiles --name ${name_osm}  --description ${name_osm} --type baselayer
-	python3 generate_mbtiles.py --tiles_dir ${data_dir}/seamap_tiles --mbtiles_path ${data_dir}/seamap.mbtiles --name ${name_seamap}  --description ${name_seamap} --type overlay
+	python3 generate_mbtiles.py --tiles_dir ${data_dir}/osm_tiles --mbtiles_path ${data_dir}/osm.mbtiles --name ${name_osm}  --description ${name_osm} --type baselayer --format png
+	python3 generate_mbtiles.py --tiles_dir ${data_dir}/seamap_tiles --mbtiles_path ${data_dir}/seamap.mbtiles --name ${name_seamap}  --description ${name_seamap} --type overlay --format png
 fi
 
 echo "ALL DONE!"
